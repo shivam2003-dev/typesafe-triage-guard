@@ -33,9 +33,9 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
       - name: live smoke test against real Jev
+        if: ${{ secrets.TYPESAFE_API_KEY != '' }}
         env:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
-        if: ${{ env.TYPESAFE_API_KEY != '' }}
         run: |
           triage-guard ticket run "My card was charged twice, please help ASAP." --json
           triage-guard alert run "Total outage across every service, nothing is reachable." --json
