@@ -165,6 +165,63 @@ honest illustration of why RLCD's calibration objective (see the write-up
 below) matters: a model whose probabilities are actually calibrated doesn't
 have this failure mode.
 
+### Verified against the real model (CI, `jev-1.13.0`)
+
+The repo's `live-smoke` CI job runs all three CLIs against real Jev (via a
+`TYPESAFE_API_KEY` repo secret) on every push —
+[latest run](https://github.com/shivam2003-dev/typesafe-triage-guard/actions/workflows/ci.yml).
+Unedited output from one such run:
+
+```json
+// triage-guard ticket run "My card was charged twice, please help ASAP." --json
+{
+  "route": "auto",
+  "guard": { "action": "pass", "severity": 0.06,
+             "severity_label": "No harm -- ordinary, benign content." },
+  "department": "billing", "department_confidence": 1.0,
+  "frustration": 1.46, "urgency": 2.27, "is_urgent": 0.98,
+  "priority": 0.5618, "reason": "within normal thresholds"
+}
+
+// triage-guard alert run "Total outage across every service, nothing is reachable." --json
+{
+  "route": "auto_page", "service": "network", "service_confidence": 0.7,
+  "root_cause": "unknown", "severity": 3.0,
+  "severity_label": "Critical -- widespread outage or data-loss risk.",
+  "is_duplicate": 0.54, "priority": 0.865,
+  "reason": "priority 0.86 >= 0.66"
+}
+
+// triage-guard deploy-gate run "Adds a migration dropping a column, no rollback plan mentioned." --json
+{
+  "action": "block",
+  "signals": { "touches_prod_credentials": 0.03, "touches_migration": 0.96,
+               "no_rollback_plan": 0.96, "touches_shared_infra": 0.16 },
+  "severity": 1.74, "severity_label": "Large -- a whole product surface or most users.",
+  "triggered_by": "no_rollback_plan", "decision": "block_deploy"
+}
+```
+
+Three things worth reading closely here:
+
+- **`department_confidence: 1.0` on an unambiguous billing complaint** — the
+  routing confidence gate would let this through automatically, correctly,
+  with no human review needed.
+- **The alert call was given no `open_incidents` list**, so
+  `is_duplicate: 0.54` — right at maximum uncertainty (0.5), not a
+  confident wrong answer in either direction. That's the calibration
+  property RLCD is built for, visible on a single real call: with no
+  evidence either way, the model reported "I don't know" instead of
+  guessing — which is exactly the behavior a threshold-based router needs
+  to be trustworthy.
+- **The deploy gate correctly fired on `no_rollback_plan` (0.96) and
+  `touches_migration` (0.96)** while leaving `touches_prod_credentials` low
+  (0.03) — a plausible migration-without-rollback correctly distinguished
+  from a credentials change, from one sentence, in one batched call.
+
+No accuracy claims beyond this small, unlabeled smoke test are made here —
+see the [Honest limitations](#honest-limitations) section.
+
 ## What each pipeline decides, and why
 
 ### `ticket.triage()`
