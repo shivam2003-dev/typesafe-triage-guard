@@ -1,0 +1,8 @@
+[
+  "Fixes a typo in the README. No code changes.",
+  "Adds a database migration that drops the legacy_users column and backfills user_profiles. No rollback plan or feature flag mentioned.",
+  "Bumps the shared logging library version used by all services from 2.3.0 to 2.4.0, changelog says only bug fixes.",
+  "Rotates the production database credentials referenced in the deploy pipeline and updates the CI secret.",
+  "Adds a new optional query parameter to a single internal debug endpoint, behind a feature flag, with a documented rollback (revert the flag).",
+  "Reconfigures the load balancer routing rules for all services to add a new health-check path; includes a staged rollout plan across two regions."
+]

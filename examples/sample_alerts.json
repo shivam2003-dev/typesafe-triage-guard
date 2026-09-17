@@ -1,0 +1,8 @@
+[
+  "p99 latency on checkout-api jumped from 120ms to 8s starting at 14:02, right after the 14:00 canary deploy of checkout-api v2.14.0. Error rate is also climbing.",
+  "Disk usage on the primary postgres instance crossed 92% and is climbing about 1%/hour. No deploy correlated.",
+  "Redis cache hit rate dropped to 40% for the last 20 minutes, elevated latency on product-page reads but no errors yet.",
+  "DNS resolution for api.internal is intermittently failing from the us-east workers, same signature as INC-4821 which is still open.",
+  "Background job queue depth for email-sender is at 40, slightly above the usual 10-15 baseline, no user impact expected.",
+  "Total outage: the load balancer is returning 502s for all traffic across every service. Nothing is reachable."
+]
